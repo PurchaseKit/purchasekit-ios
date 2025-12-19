@@ -58,7 +58,7 @@ public final class PaywallComponent: BridgeComponent {
             throw PaywallError.unknownProducts(missingIds)
         }
 
-        return .init(prices: prices)
+        return .init(prices: prices, environment: .current)
     }
 
     private func purchase(via message: HotwireNative.Message) async {
@@ -127,10 +127,12 @@ private extension PaywallComponent {
 
         struct Response: Encodable {
             let prices: [String: String]?
+            let environment: PurchaseKit.Environment?
             let error: String?
 
-            init(prices: [String: String]? = nil, error: String? = nil) {
+            init(prices: [String: String]? = nil, environment: PurchaseKit.Environment? = nil, error: String? = nil) {
                 self.prices = prices
+                self.environment = environment
                 self.error = error
             }
         }

@@ -35,13 +35,18 @@ The `paywall` bridge component handles the following messages from the web:
 
 Request:
 ```json
-{ "storeProductIds": ["monthly", "yearly"] }
+{ "products": [{ "appleStoreProductId": "monthly" }, { "appleStoreProductId": "yearly" }] }
 ```
 
 Response:
 ```json
-{ "prices": { "monthly": "$9.99", "yearly": "$99.99" } }
+{
+  "prices": { "monthly": "$9.99", "yearly": "$99.99" },
+  "environment": "sandbox"
+}
 ```
+
+Environment is `sandbox` (development, TestFlight) or `production` (App Store).
 
 ### Purchase
 
