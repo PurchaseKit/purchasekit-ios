@@ -34,10 +34,10 @@ public final class PaywallComponent: BridgeComponent {
         guard let data: Prices.Request = message.data() else { return }
 
         do {
-            let response = try await prices(for: data.storeProductIds)
+            let response = try await prices(for: data.products.map { $0.storeProductId })
             try await reply(to: message.event, with: response)
         } catch {
-            print("Failed to load prices for \(data.storeProductIds):", error.localizedDescription)
+            print("Failed to load prices for \(data.products.map { $0.storeProductId }):", error.localizedDescription)
             _ = try? await reply(to: message.event, with: Prices.Response(error: error.localizedDescription))
         }
     }
@@ -114,7 +114,15 @@ private extension PaywallComponent {
 
     enum Prices {
         struct Request: Decodable {
-            let storeProductIds: [String]
+            let products: [Product]
+        }
+
+        struct Product: Decodable {
+            let storeProductId: String
+
+            enum CodingKeys: String, CodingKey {
+                case storeProductId = "appleStoreProductId"
+            }
         }
 
         struct Response: Encodable {
@@ -132,6 +140,11 @@ private extension PaywallComponent {
         struct Request: Decodable {
             let storeProductId: String
             let correlationId: UUID
+
+            enum CodingKeys: String, CodingKey {
+                case storeProductId = "appleStoreProductId"
+                case correlationId
+            }
         }
 
         struct Response: Encodable {
