@@ -26,10 +26,6 @@ public final class PaywallComponent: BridgeComponent {
         }
     }
 
-    private var viewController: UIViewController? {
-        delegate?.destination as? UIViewController
-    }
-
     private func prices(via message: HotwireNative.Message) async {
         guard let data: Prices.Request = message.data() else { return }
 
