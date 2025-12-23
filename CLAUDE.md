@@ -53,3 +53,31 @@ Detection logic:
 - Requires iOS 15.0+
 - `appAccountToken` must be a valid UUID
 - Transaction verification uses `VerificationResult`
+
+## Sandbox testing
+
+**Requirements for real Apple webhooks:**
+- Real iOS device (not simulator - StoreKit Config files don't send webhooks)
+- Sandbox Apple ID
+- SaaS accessible from internet (use ngrok for local development)
+- App Store Connect configured with webhook URL
+
+**Sandbox subscription durations:**
+
+| Production duration | Sandbox duration |
+|---------------------|------------------|
+| 1 week | 3 minutes |
+| 1 month | 5 minutes |
+| 2 months | 10 minutes |
+| 3 months | 15 minutes |
+| 6 months | 30 minutes |
+| 1 year | 1 hour |
+
+**Resetting sandbox purchases:**
+- Easiest: Create a new sandbox tester in App Store Connect
+- On device: Settings → App Store → sign out, sign in with different sandbox account
+- Cancel subscription: App Store Connect → Users and Access → Sandbox → Manage (expires based on duration above)
+
+**Xcode StoreKit testing (local only, no webhooks):**
+- Debug → StoreKit → Manage Transactions (delete transactions)
+- Debug → StoreKit → Clear Purchase History
