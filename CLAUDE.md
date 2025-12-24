@@ -4,7 +4,8 @@ Swift package for StoreKit 2 integration with Hotwire Native.
 
 ## Structure
 
-- `Sources/Components/PaywallComponent.swift` - Bridge component for prices and purchases
+- `Sources/Components/PaywallComponent.swift` - Bridge component (thin routing layer)
+- `Sources/Store.swift` - StoreKit operations (prices, purchases, transaction listener)
 - `Sources/Environment.swift` - Detects sandbox vs production environment
 
 ## PaywallComponent

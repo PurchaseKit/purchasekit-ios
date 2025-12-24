@@ -3,105 +3,42 @@ import StoreKit
 
 public final class PaywallComponent: BridgeComponent {
     override public nonisolated class var name: String {
-        startTransactionListener()
+        Store.startTransactionListener()
         return "paywall"
-    }
-
-    private nonisolated static let transactionListener: Void = {
-        Task {
-            for await result in Transaction.updates {
-                if case .verified(let transaction) = result {
-                    await transaction.finish()
-                }
-            }
-        }
-    }()
-
-    private nonisolated static func startTransactionListener() {
-        _ = transactionListener
     }
 
     override public func onReceive(message: HotwireNative.Message) {
         guard let event = Event(rawValue: message.event) else { return }
 
         switch event {
-        case .prices: Task { await prices(via: message) }
-        case .purchase: Task { await purchase(via: message) }
+        case .prices: Task { await handlePrices(message) }
+        case .purchase: Task { await handlePurchase(message) }
         }
     }
 
-    private func prices(via message: HotwireNative.Message) async {
-        guard let data: Prices.Request = message.data() else { return }
+    private func handlePrices(_ message: HotwireNative.Message) async {
+        guard let data: PricesRequest = message.data() else { return }
+        let ids = data.products.map { $0.storeProductId }
 
         do {
-            let response = try await prices(for: data.products.map { $0.storeProductId })
+            let prices = try await Store.prices(for: ids)
+            let response = PricesResponse(prices: prices, environment: .current)
             try await reply(to: message.event, with: response)
         } catch {
-            print("Failed to load prices for \(data.products.map { $0.storeProductId }):", error.localizedDescription)
-            _ = try? await reply(to: message.event, with: Prices.Response(error: error.localizedDescription))
+            print("Failed to load prices for \(ids):", error.localizedDescription)
+            _ = try? await reply(to: message.event, with: PricesResponse(error: error.localizedDescription))
         }
     }
 
-    private func prices(for ids: [String]) async throws -> Prices.Response {
-        let products = try await Product.products(for: ids)
-
-        var prices: [String: String] = [:]
-        for product in products {
-            prices[product.id] = product.displayPrice
-        }
-
-        let foundIds = Set(products.map(\.id))
-        let requestedIds = Set(ids)
-        let missingIds = Array(requestedIds.subtracting(foundIds)).sorted()
-
-        if !missingIds.isEmpty {
-            throw PaywallError.unknownProducts(missingIds)
-        }
-
-        return .init(prices: prices, environment: .current)
-    }
-
-    private func purchase(via message: HotwireNative.Message) async {
-        guard let data: Purchase.Request = message.data() else { return }
+    private func handlePurchase(_ message: HotwireNative.Message) async {
+        guard let data: PurchaseRequest = message.data() else { return }
 
         do {
-            let response = try await purchase(id: data.storeProductId, token: data.correlationId)
-            try await reply(to: message.event, with: response)
+            let status = try await Store.purchase(id: data.storeProductId, token: data.correlationId)
+            try await reply(to: message.event, with: PurchaseResponse(status))
         } catch {
             print("Failed to purchase \(data.storeProductId):", error.localizedDescription)
-            _ = try? await reply(to: message.event, with: Purchase.Response(error: error.localizedDescription))
-        }
-    }
-
-    private func purchase(id: String, token: UUID) async throws -> Purchase.Response {
-        let products = try await Product.products(for: [id])
-        guard let product = products.first else {
-            throw PaywallError.unknownProducts([id])
-        }
-
-        switch try await product.purchase(options: [.appAccountToken(token)]) {
-        case .success(let verification):
-            let transaction = try verified(verification)
-            await transaction.finish()
-            return .init(.success)
-
-        case .userCancelled:
-            return .init(.cancelled)
-
-        case .pending:
-            return .init(.pending)
-
-        @unknown default:
-            throw StoreKitError.unknown
-        }
-    }
-
-    private func verified<T>(_ result: VerificationResult<T>) throws -> T {
-        switch result {
-        case .verified(let signed):
-            return signed
-        case .unverified(_, let error):
-            throw error
+            _ = try? await reply(to: message.event, with: PurchaseResponse(error: error.localizedDescription))
         }
     }
 }
@@ -112,10 +49,8 @@ private extension PaywallComponent {
         case purchase
     }
 
-    enum Prices {
-        struct Request: Decodable {
-            let products: [Product]
-        }
+    struct PricesRequest: Decodable {
+        let products: [Product]
 
         struct Product: Decodable {
             let storeProductId: String
@@ -124,51 +59,42 @@ private extension PaywallComponent {
                 case storeProductId = "appleStoreProductId"
             }
         }
+    }
 
-        struct Response: Encodable {
-            let prices: [String: String]?
-            let environment: PurchaseKit.Environment?
-            let error: String?
+    struct PricesResponse: Encodable {
+        let prices: [String: String]?
+        let environment: PurchaseKit.Environment?
+        let error: String?
 
-            init(prices: [String: String]? = nil, environment: PurchaseKit.Environment? = nil, error: String? = nil) {
-                self.prices = prices
-                self.environment = environment
-                self.error = error
-            }
+        init(prices: [String: String]? = nil, environment: PurchaseKit.Environment? = nil, error: String? = nil) {
+            self.prices = prices
+            self.environment = environment
+            self.error = error
         }
     }
 
-    enum Purchase {
-        struct Request: Decodable {
-            let storeProductId: String
-            let correlationId: UUID
+    struct PurchaseRequest: Decodable {
+        let storeProductId: String
+        let correlationId: UUID
 
-            enum CodingKeys: String, CodingKey {
-                case storeProductId = "appleStoreProductId"
-                case correlationId
-            }
+        enum CodingKeys: String, CodingKey {
+            case storeProductId = "appleStoreProductId"
+            case correlationId
+        }
+    }
+
+    struct PurchaseResponse: Encodable {
+        let status: PurchaseStatus
+        let error: String?
+
+        init(_ status: PurchaseStatus) {
+            self.status = status
+            self.error = nil
         }
 
-        struct Response: Encodable {
-            let status: Status
-            let error: String?
-
-            init(_ status: Status) {
-                self.status = status
-                self.error = nil
-            }
-
-            init(error: String) {
-                self.status = .error
-                self.error = error
-            }
-        }
-
-        enum Status: String, Encodable {
-            case success
-            case pending
-            case cancelled
-            case error
+        init(error: String) {
+            self.status = .error
+            self.error = error
         }
     }
 }
