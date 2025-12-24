@@ -1,6 +1,6 @@
 # PurchaseKit iOS
 
-Swift package providing a Hotwire Native bridge component for StoreKit purchases.
+Swift package providing a Hotwire Native bridge component for StoreKit purchases via [PurchaseKit](https://purchasekit.dev).
 
 ## Installation
 
@@ -21,6 +21,8 @@ Hotwire.registerBridgeComponents([
     PaywallComponent.self
 ])
 ```
+
+The component automatically listens for StoreKit transactions and finishes them immediately. PurchaseKit handles fulfillment via webhooks.
 
 ## Bridge component
 

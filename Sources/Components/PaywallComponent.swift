@@ -15,7 +15,25 @@ extension PaywallError: LocalizedError {
 }
 
 public final class PaywallComponent: BridgeComponent {
-    override nonisolated public class var name: String { "paywall" }
+    override nonisolated public class var name: String {
+        startTransactionListener()
+        return "paywall"
+    }
+
+    private static var isListening = false
+
+    private nonisolated static func startTransactionListener() {
+        guard !isListening else { return }
+        isListening = true
+
+        Task {
+            for await result in Transaction.updates {
+                if case .verified(let transaction) = result {
+                    await transaction.finish()
+                }
+            }
+        }
+    }
 
     override public func onReceive(message: HotwireNative.Message) {
         guard let event = Event(rawValue: message.event) else { return }

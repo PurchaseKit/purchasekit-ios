@@ -53,6 +53,8 @@ Detection logic:
 - Requires iOS 15.0+
 - `appAccountToken` must be a valid UUID
 - Transaction verification uses `VerificationResult`
+- Transaction listener auto-starts when component is registered (via `name` property access)
+- Listener finishes all verified transactions immediately - fulfillment happens via webhooks
 
 ## Sandbox testing
 
