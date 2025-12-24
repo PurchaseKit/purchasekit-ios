@@ -1,21 +1,8 @@
-import Foundation
 import HotwireNative
 import StoreKit
 
-public enum PaywallError: Error {
-    case unknownProducts([String])
-}
-
-extension PaywallError: LocalizedError {
-    public var errorDescription: String? {
-        switch self {
-        case .unknownProducts(let ids): "Could not find product with ID(s): \(ids)"
-        }
-    }
-}
-
 public final class PaywallComponent: BridgeComponent {
-    override nonisolated public class var name: String {
+    override public nonisolated class var name: String {
         startTransactionListener()
         return "paywall"
     }
