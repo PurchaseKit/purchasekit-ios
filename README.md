@@ -24,6 +24,15 @@ Hotwire.registerBridgeComponents([
 
 The component automatically listens for StoreKit transactions and finishes them immediately. PurchaseKit handles fulfillment via webhooks.
 
+## Web setup
+
+Use the [purchasekit-pay gem](https://github.com/purchasekit/purchasekit-pay) to set up the web-side bridge component. It provides:
+
+- Rails helper to render a paywall
+- SDK to interact with the PurchaseKit dashboard
+- Automatic message handling with the native component
+- `Pay::Subscription` updates from webhook responses
+
 ## Bridge component
 
 The `paywall` bridge component handles the following messages from the web:
