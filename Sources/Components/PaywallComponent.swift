@@ -20,12 +20,7 @@ public final class PaywallComponent: BridgeComponent {
         return "paywall"
     }
 
-    private static var isListening = false
-
-    private nonisolated static func startTransactionListener() {
-        guard !isListening else { return }
-        isListening = true
-
+    private nonisolated static let transactionListener: Void = {
         Task {
             for await result in Transaction.updates {
                 if case .verified(let transaction) = result {
@@ -33,6 +28,10 @@ public final class PaywallComponent: BridgeComponent {
                 }
             }
         }
+    }()
+
+    private nonisolated static func startTransactionListener() {
+        _ = transactionListener
     }
 
     override public func onReceive(message: HotwireNative.Message) {
