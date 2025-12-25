@@ -34,7 +34,7 @@ enum Store {
         return prices
     }
 
-    static func purchase(id: String, token: UUID) async throws -> PurchaseStatus {
+    static func purchase(id: String, token: UUID) async throws -> (PurchaseStatus, Transaction?) {
         let products = try await Product.products(for: [id])
         guard let product = products.first else {
             throw PaywallError.unknownProducts([id])
@@ -44,13 +44,13 @@ enum Store {
         case .success(let verification):
             let transaction = try verified(verification)
             await transaction.finish()
-            return .success
+            return (.success, transaction)
 
         case .userCancelled:
-            return .cancelled
+            return (.cancelled, nil)
 
         case .pending:
-            return .pending
+            return (.pending, nil)
 
         @unknown default:
             throw StoreKitError.unknown

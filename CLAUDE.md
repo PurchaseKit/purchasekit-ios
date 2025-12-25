@@ -7,6 +7,8 @@ Swift package for StoreKit 2 integration with Hotwire Native.
 - `Sources/Components/PaywallComponent.swift` - Bridge component (thin routing layer)
 - `Sources/Store.swift` - StoreKit operations (prices, purchases, transaction listener)
 - `Sources/Environment.swift` - Detects sandbox vs production environment
+- `Sources/APIClient.swift` - HTTP client for SaaS communication
+- `Sources/Version.swift` - Package version constant
 
 ## PaywallComponent
 
@@ -51,7 +53,7 @@ Detection logic:
 ## StoreKit notes
 
 - Uses StoreKit 2 async/await APIs
-- Requires iOS 15.0+
+- Requires iOS 16.0+ (for `Transaction.environment`)
 - `appAccountToken` must be a valid UUID
 - Transaction verification uses `VerificationResult`
 - Transaction listener auto-starts when component is registered (via `name` property access)
@@ -84,3 +86,26 @@ Detection logic:
 **Xcode StoreKit testing (local only, no webhooks):**
 - Debug → StoreKit → Manage Transactions (delete transactions)
 - Debug → StoreKit → Clear Purchase History
+
+## Xcode StoreKit testing
+
+For local development without Apple webhooks, the package auto-completes purchases made with Xcode StoreKit Configuration files.
+
+### How it works
+
+1. When `transaction.environment == .xcode`, the package POSTs to the SaaS completion endpoint
+2. SaaS marks the intent as completed and sends webhook to host app
+3. Same redirect flow as production, but without waiting for Apple
+
+### Setup
+
+1. Create a StoreKit Configuration file in Xcode (File → New → File → StoreKit Configuration)
+2. Add products matching your PurchaseKit product IDs
+3. Edit scheme → Run → Options → StoreKit Configuration → select your file
+4. Run the app in simulator
+
+### Limitations
+
+- Only works with StoreKit Configuration files (not sandbox or production)
+- Webhook from Apple is never received (SaaS simulates it)
+- Environment is recorded as "xcode" in the purchase intent

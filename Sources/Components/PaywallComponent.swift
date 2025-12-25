@@ -34,7 +34,17 @@ public final class PaywallComponent: BridgeComponent {
         guard let data: PurchaseRequest = message.data() else { return }
 
         do {
-            let status = try await Store.purchase(id: data.storeProductId, token: data.correlationId)
+            let (status, transaction) = try await Store.purchase(id: data.storeProductId, token: data.correlationId)
+
+            // Auto-complete for Xcode StoreKit testing (no Apple webhooks)
+            if status == .success,
+               let transaction = transaction,
+               transaction.environment == .xcode,
+               let url = data.xcodeCompletionUrl
+            {
+                await APIClient.post(url: url)
+            }
+
             try await reply(to: message.event, with: PurchaseResponse(status))
         } catch {
             print("Failed to purchase \(data.storeProductId):", error.localizedDescription)
@@ -76,10 +86,12 @@ private extension PaywallComponent {
     struct PurchaseRequest: Decodable {
         let storeProductId: String
         let correlationId: UUID
+        let xcodeCompletionUrl: String?
 
         enum CodingKeys: String, CodingKey {
             case storeProductId = "appleStoreProductId"
             case correlationId
+            case xcodeCompletionUrl
         }
     }
 

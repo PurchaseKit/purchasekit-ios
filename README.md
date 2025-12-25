@@ -75,6 +75,6 @@ Status values: `success`, `pending`, `cancelled`, `error`
 
 ## Requirements
 
-- iOS 15.0+
+- iOS 16.0+
 - Xcode 15.0+
 - Hotwire Native iOS 1.2.0+
