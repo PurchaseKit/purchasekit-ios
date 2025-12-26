@@ -109,3 +109,4 @@ For local development without Apple webhooks, the package auto-completes purchas
 - Only works with StoreKit Configuration files (not sandbox or production)
 - Webhook from Apple is never received (SaaS simulates it)
 - Environment is recorded as "xcode" in the purchase intent
+- Only compiled in DEBUG builds (not included in release builds)

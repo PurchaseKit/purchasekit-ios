@@ -37,6 +37,7 @@ public final class PaywallComponent: BridgeComponent {
             let (status, transaction) = try await Store.purchase(id: data.storeProductId, token: data.correlationId)
 
             // Auto-complete for Xcode StoreKit testing (no Apple webhooks)
+            #if DEBUG
             if status == .success,
                let transaction = transaction,
                transaction.environment == .xcode,
@@ -44,6 +45,7 @@ public final class PaywallComponent: BridgeComponent {
             {
                 await APIClient.post(url: url)
             }
+            #endif
 
             try await reply(to: message.event, with: PurchaseResponse(status))
         } catch {
