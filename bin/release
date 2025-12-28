@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+VERSION=${1:-}
+
+if [[ -z "$VERSION" ]]; then
+  echo "Usage: bin/release VERSION"
+  echo "Example: bin/release 0.2.0"
+  exit 1
+fi
+
+# 1. Check clean git status
+if [[ -n $(git status --porcelain) ]]; then
+  echo "Error: Working directory not clean. Commit or stash changes first."
+  exit 1
+fi
+
+# 2. Bump version
+VERSION_FILE="Sources/Version.swift"
+CURRENT_VERSION=$(grep -o 'current = "[^"]*"' "$VERSION_FILE" | cut -d'"' -f2)
+
+if [[ "$CURRENT_VERSION" == "$VERSION" ]]; then
+  echo "Error: Version is already $VERSION"
+  exit 1
+fi
+
+sed -i '' "s/current = \".*\"/current = \"$VERSION\"/" "$VERSION_FILE"
+
+# 3. Commit version bump
+git add "$VERSION_FILE"
+git commit -m "Bump version to $VERSION"
+
+# 4. Tag with version
+git tag "$VERSION"
+
+# 5. Push to git + tags
+git push origin main
+git push origin "$VERSION"
+
+echo "Released PurchaseKit iOS v$VERSION"
