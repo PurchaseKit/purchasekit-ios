@@ -78,3 +78,11 @@ Status values: `success`, `pending`, `cancelled`, `error`
 - iOS 16.0+
 - Xcode 15.0+
 - Hotwire Native iOS 1.2.0+
+
+## Releasing
+
+```bash
+bin/release 1.2.0
+```
+
+This bumps the version in `Sources/Version.swift`, commits, tags, and pushes. Swift Package Manager picks up the new version automatically from the git tag.
