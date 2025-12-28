@@ -93,11 +93,20 @@ For local development without Apple webhooks, the package auto-completes purchas
 
 ### How it works
 
-1. When `transaction.environment == .xcode`, the package POSTs to the SaaS completion endpoint
-2. SaaS marks the intent as completed and sends webhook to host app
-3. Same redirect flow as production, but without waiting for Apple
+1. When `transaction.environment == .xcode`, the package POSTs to a completion endpoint
+2. In demo mode: POSTs to local Rails app, which creates the subscription directly
+3. In production mode: POSTs to SaaS, which sends webhook to host app
+4. Same redirect flow as production, but without waiting for Apple
 
-### Setup
+### Demo mode setup (examples)
+
+The example apps include a pre-configured StoreKit Configuration file with local UUIDs (no App Store Connect sync). No Xcode sign-in required.
+
+1. Open `examples/ios/PurchaseKitDemo.xcodeproj`
+2. The scheme already references `App/Config/PurchaseKit.storekit`
+3. Run on simulator - purchases complete locally via demo mode
+
+### Custom setup
 
 1. Create a StoreKit Configuration file in Xcode (File → New → File → StoreKit Configuration)
 2. Add products matching your PurchaseKit product IDs
@@ -107,6 +116,6 @@ For local development without Apple webhooks, the package auto-completes purchas
 ### Limitations
 
 - Only works with StoreKit Configuration files (not sandbox or production)
-- Webhook from Apple is never received (SaaS simulates it)
+- Webhook from Apple is never received (local completion or SaaS simulates it)
 - Environment is recorded as "xcode" in the purchase intent
 - Only compiled in DEBUG builds (not included in release builds)
