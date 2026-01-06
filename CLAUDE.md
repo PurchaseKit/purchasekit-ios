@@ -102,7 +102,7 @@ For local development without Apple webhooks, the package auto-completes purchas
 
 The example apps include a pre-configured StoreKit Configuration file with local UUIDs (no App Store Connect sync). No Xcode sign-in required.
 
-1. Open `examples/ios/PurchaseKitDemo.xcodeproj`
+1. Open `demo/ios/PurchaseKitDemo.xcodeproj`
 2. The scheme already references `App/Config/PurchaseKit.storekit`
 3. Run on simulator - purchases complete locally via demo mode
 
