@@ -1,3 +1,3 @@
 public enum PurchaseKitVersion {
-    public static let current = "0.4.2"
+    public static let current = "0.4.3"
 }
