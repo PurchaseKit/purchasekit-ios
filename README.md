@@ -1,6 +1,6 @@
 # PurchaseKit iOS
 
-Swift package providing a Hotwire Native bridge component for StoreKit purchases via [PurchaseKit](https://purchasekit.dev).
+Swift package providing a Hotwire Native bridge component for StoreKit purchases via [PurchaseKit](https://purchasekit.com).
 
 ## Installation
 
