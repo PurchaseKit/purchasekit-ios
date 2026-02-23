@@ -18,6 +18,7 @@ Hotwire Native bridge component that handles:
 |---------|---------|----------|
 | `prices` | Product IDs | Localized prices + environment |
 | `purchase` | Product ID + correlation UUID | Status (success/pending/cancelled/error) |
+| `restore` | (none) | List of active subscription IDs |
 
 ### Prices flow
 
@@ -32,6 +33,14 @@ Hotwire Native bridge component that handles:
 2. Component calls `product.purchase(options: [.appAccountToken(uuid)])`
 3. UUID links the purchase to the SaaS Purchase::Intent
 4. Returns status to web (success keeps spinner, cancelled re-enables form)
+
+### Restore flow
+
+1. Web sends `restore` message (no request data)
+2. Component calls `Store.currentSubscriptionIds()` which iterates `Transaction.currentEntitlements`
+3. Returns `originalID` for each verified transaction as a string array
+4. Web dispatches `purchasekit--paywall:restore` DOM event with the IDs
+5. Developer matches IDs against stored subscriptions (IDs match `subscription_id` from webhook payloads)
 
 ## Environment detection
 

@@ -13,6 +13,7 @@ public final class PaywallComponent: BridgeComponent {
         switch event {
         case .prices: Task { await handlePrices(message) }
         case .purchase: Task { await handlePurchase(message) }
+        case .restore: Task { await handleRestore(message) }
         }
     }
 
@@ -27,6 +28,15 @@ public final class PaywallComponent: BridgeComponent {
         } catch {
             print("Failed to load prices for \(ids):", error.localizedDescription)
             _ = try? await reply(to: message.event, with: PricesResponse(error: error.localizedDescription))
+        }
+    }
+
+    private func handleRestore(_ message: HotwireNative.Message) async {
+        do {
+            let ids = await Store.currentSubscriptionIds()
+            try await reply(to: message.event, with: RestoreResponse(subscriptionIds: ids))
+        } catch {
+            _ = try? await reply(to: message.event, with: RestoreResponse(subscriptionIds: [], error: error.localizedDescription))
         }
     }
 
@@ -59,6 +69,7 @@ private extension PaywallComponent {
     enum Event: String {
         case prices
         case purchase
+        case restore
     }
 
     struct PricesRequest: Decodable {
@@ -94,6 +105,16 @@ private extension PaywallComponent {
             case storeProductId = "appleStoreProductId"
             case correlationId
             case xcodeCompletionUrl
+        }
+    }
+
+    struct RestoreResponse: Encodable {
+        let subscriptionIds: [String]
+        let error: String?
+
+        init(subscriptionIds: [String], error: String? = nil) {
+            self.subscriptionIds = subscriptionIds
+            self.error = error
         }
     }
 

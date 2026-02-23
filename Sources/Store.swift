@@ -34,6 +34,16 @@ enum Store {
         return prices
     }
 
+    static func currentSubscriptionIds() async -> [String] {
+        var ids: [String] = []
+        for await result in Transaction.currentEntitlements {
+            if case .verified(let transaction) = result {
+                ids.append(String(transaction.originalID))
+            }
+        }
+        return ids
+    }
+
     static func purchase(id: String, token: UUID) async throws -> (PurchaseStatus, Transaction?) {
         let products = try await Product.products(for: [id])
         guard let product = products.first else {

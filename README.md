@@ -22,7 +22,7 @@ Hotwire.registerBridgeComponents([
 ])
 ```
 
-The component automatically listens for StoreKit transactions and finishes them immediately. PurchaseKit handles fulfillment via webhooks.
+The component automatically listens for StoreKit transactions and finishes them immediately. PurchaseKit handles fulfillment via webhooks. The component also supports restore purchases, reading active subscriptions from `Transaction.currentEntitlements`.
 
 ## Web setup
 
